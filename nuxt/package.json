@@ -10,7 +10,20 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.5.4",
+    "axios": "^1.7.5",
+    "js-cookie": "^3.0.5",
     "nuxt": "^3.12.4",
-    "vue": "latest"
+    "pinia": "^2.2.2",
+    "vue": "3.4.21",
+    "vue-router": "^4.4.3"
+  },
+  "devDependencies": {
+    "@hypernym/nuxt-gsap": "^2.4.2",
+    "@types/js-cookie": "^3.0.6",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "sass": "^1.77.8",
+    "tailwindcss": "^3.4.10"
   }
 }
