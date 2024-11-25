@@ -9,7 +9,8 @@ export default () => {
         try {
             baseURL = useRuntimeConfig().public.baseURL;
         } catch (err) {
-            baseURL = 'http://localhost:8000';
+            // baseURL = 'http://localhost:8000';
+            baseURL = 'https://certani.amirzanfikri.my.id';
         }
         const instance = axios.create({
             baseURL: baseURL,
@@ -39,12 +40,13 @@ export default () => {
         const req = async () => {
             try {
                 const response = await createInstance().request({ url, method, data, headers });
-                return { status: 'success', message: response.data.message, data: response.data.data };
+                return { status: 'success', message: response   .data.message, data: response.data.data };
             } catch (err: any) {
                 if (err.response){
                     switch(err.response.status){
                         case 404: return { status:'error', message: 'not found', code: 404 };
                         case 419:
+                        case 429:
                             if (retryCount <= 3) {
                                 retryCount++;
                                 await fetchCsrfToken();
@@ -53,6 +55,7 @@ export default () => {
                                 retryCount = 0;
                                 return { status: 'error', message: 'Request failed' };
                             }
+                        case 500: return { status:'error', message: err.response.message , code: 500 };
                     }
                 }
                 return { status: 'error', message: err.response ? err.response.data.message : err.message, link: err.response.data.link ?? '' };

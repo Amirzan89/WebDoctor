@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UserController;
 use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -86,7 +87,9 @@ class JWTController extends Controller
             $number = $this->checkTotalLogin(['email'=>$email], 'website');
             $idUser = $userData['id_user'];
             unset($userData['id_user']);
+            unset($userData['uuid']);
             unset($userData['password']);
+            unset($userData['role']);
             $exp = time() + intval(env('JWT_ACCESS_TOKEN_EXPIRED'));
             $expRefresh = time() + intval(env('JWT_REFRESH_TOKEN_EXPIRED'));
             $secretKey = env('JWT_SECRET');
@@ -156,32 +159,27 @@ class JWTController extends Controller
     //decode token website
     public function decode($data){
         try{
-            $email = $data['email'];
-            $token = $data['token'];
-            $opt = $data['opt'];
-            if(empty($email) || is_null($email)){
+            $const = ['token' => 'JWT_SECRET', 'refresh' => 'JWT_SECRET_REFRESH_TOKEN'];
+            if(empty($data['email']) || is_null($data['email'])){
                 return ['status'=>'error','message'=>'email empty'];
-            }else if(empty($token) || is_null($token)){
+            }
+            if(empty($data['token']) || is_null($data['token'])){
                 return ['status'=>'error','message'=>'token empty'];
-            }else if(empty($opt) || is_null($opt)){
-                return ['status'=>'error','message'=>'option empty'];
+            }
+            if(empty($data['opt']) || is_null($data['opt'])){
+                return ['status'=>'error','message'=>'option invalid'];
             }else{
-                if($opt == 'token'){
-                    $decoded = json_decode(json_encode(JWT::decode($token, new Key(env('JWT_SECRET'), 'HS512'))), true);
-                    if(strcmp($email,$decoded['data']['email'] ?? null) === 0){
-                        return ['status'=>'success','data'=>$decoded];
-                    }
-                    return ['status'=>'error','message'=>'invalid email'];
-                }else if($opt == 'refresh'){
-                    $decoded = json_decode(json_encode(JWT::decode($token, new Key(env('JWT_SECRET_REFRESH_TOKEN'), 'HS512'))), true);
-                    if(strcmp($email,$decoded['data']['email'] ?? null) === 0){
-                        return ['status'=>'success','data'=>$decoded];
-                    }
-                    return ['status'=>'error','message'=>'invalid email'];
-                }else{
-                    return ['status'=>'error','message'=>'invalid data'];
+                if(!array_key_exists($data['opt'], $const)){
+                    return ['status'=>'error','message'=>'option invalid'];
                 }
             }
+            $decoded = json_decode(json_encode(JWT::decode($data['token'], new Key(env($const[$data['opt']]), 'HS512'))), true);
+            if(!(strcmp($data['email'],$decoded['data']['email'] ?? null) === 0)){
+                return ['status'=>'error','message'=>'invalid email'];
+            }
+            $userData = UserController::checkEmail($data['email']);
+            if($userData['status'] == 'error') return $userData;
+            return ['status'=>'success','data'=>array_merge($userData['data'], $decoded['data'])];
         }catch(ExpiredException $e){
             return ['status'=>'error','message'=>$e->getMessage()];
         } catch (SignatureInvalidException $e) {

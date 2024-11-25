@@ -2,23 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-// function getView($name = null){
-//     $env = env('APP_VIEW', 'blade');
-//     if($env == 'blade'){
-//         return view($name);
-//     }else if($env == 'inertia'){
-//         return inertia($name);
-//     }else if($env == 'nuxt'){
-//         $indexPath = public_path('dist/index.html');
-//         if (File::exists($indexPath)) {
-//             $htmlContent = File::get($indexPath);
-//             $htmlContent = str_replace('<body>', '<body>' . '<script>const csrfToken = "' . csrf_token() . '";</script>', $htmlContent);
-//             return response($htmlContent)->cookie('XSRF-TOKEN', csrf_token(), 0, '/', null, false, true);
-//         } else {
-//             return response()->json(['error' => 'Page not found'], 404);
-//         }
-//     }
-// }
 Route::group(['middleware'=>'auth'],function(){
     //API for anyone or public
     Route::get('/','Page\HomeController@getHome')->where('any','.*');
